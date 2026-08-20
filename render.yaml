@@ -1,0 +1,14 @@
+# Render Blueprint — 王氏家谱（前端 + 共享照片后端）
+# 在 Render 仪表盘选择 New → Blueprint，连接本仓库即可一键拉起。
+services:
+  - type: web
+    name: wang-shi-jiapu
+    runtime: node
+    plan: free                 # 免费层；不活跃时会休眠，首个请求冷启动
+    branch: main
+    buildCommand: "npm install"
+    startCommand: "node server.js"
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production

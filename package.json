@@ -1,0 +1,12 @@
+{
+  "name": "wang-shi-jiapu",
+  "version": "1.0.0",
+  "private": true,
+  "description": "王氏家谱 — 静态站点 + 共享照片后端",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

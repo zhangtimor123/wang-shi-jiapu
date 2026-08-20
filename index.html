@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>王氏家谱 · 手机版</title>
+<style>
+  :root{
+    --bg:#f6ede0;
+    --paper:#fffaf0;
+    --ink:#3a2f25;
+    --muted:#8a7a66;
+    --red:#9e2b25;
+    --red-2:#b8443a;
+    --gold:#c8a45c;
+    --line:#e7d8bf;
+    --shadow:0 2px 10px rgba(120,80,40,.12);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    font-size:17px;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .serif{font-family:"Songti SC","STSong","SimSun",serif;}
+  /* ---------- Header ---------- */
+  header{
+    background:linear-gradient(160deg,#9e2b25,#7c201c);
+    color:#fdf3e3;
+    padding:calc(env(safe-area-inset-top) + 20px) 18px 18px;
+    text-align:center;
+    box-shadow:0 3px 12px rgba(120,30,20,.25);
+    position:relative;
+  }
+  header .seal{
+    display:inline-block;width:54px;height:54px;line-height:54px;border-radius:50%;
+    border:2px solid var(--gold);color:var(--gold);font-size:26px;font-weight:700;
+    margin-bottom:8px;
+  }
+  header h1{margin:2px 0 4px;font-size:27px;letter-spacing:4px;}
+  header .sub{font-size:13px;opacity:.9;letter-spacing:2px;}
+  header .origin{font-size:12px;opacity:.75;margin-top:6px;}
+  /* ---------- Tabs ---------- */
+  .tabs{
+    position:sticky;top:0;z-index:30;
+    display:flex;background:#fffaf0;border-bottom:1px solid var(--line);
+    box-shadow:0 2px 6px rgba(120,80,40,.08);
+  }
+  .tab{
+    flex:1;text-align:center;padding:13px 0;font-size:16px;color:var(--muted);
+    border-bottom:3px solid transparent;font-weight:600;letter-spacing:1px;
+  }
+  .tab.active{color:var(--red);border-bottom-color:var(--red);}
+  /* ---------- Views ---------- */
+  .view{display:none;padding:14px 12px calc(env(safe-area-inset-bottom) + 30px);}
+  .view.active{display:block;}
+  /* ---------- Search & chips ---------- */
+  .search{
+    width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:24px;
+    background:#fff;font-size:16px;color:var(--ink);outline:none;margin-bottom:12px;
+  }
+  .search::placeholder{color:#b7a98f;}
+  .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;-webkit-overflow-scrolling:touch;}
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{
+    flex:0 0 auto;padding:8px 14px;border-radius:20px;background:#fff;border:1px solid var(--line);
+    color:var(--muted);font-size:14px;white-space:nowrap;
+  }
+  .chip.active{background:var(--red);color:#fff;border-color:var(--red);font-weight:600;}
+  .chip .n{opacity:.7;font-size:12px;margin-left:3px;}
+  /* ---------- Person grid ---------- */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-top:6px;}
+  @media(min-width:480px){.grid{grid-template-columns:repeat(4,1fr);}}
+  .pcard{
+    background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    text-align:center;padding:10px 6px 9px;box-shadow:var(--shadow);cursor:pointer;
+    transition:transform .08s;
+  }
+  .pcard:active{transform:scale(.96);}
+  .pcard .ava{
+    width:62px;height:62px;border-radius:50%;margin:0 auto 7px;object-fit:cover;
+    border:2px solid var(--gold);background:#f0e4cf;display:flex;align-items:center;justify-content:center;
+    font-size:26px;color:var(--red);font-weight:700;
+  }
+  .pcard .nm{font-size:15px;font-weight:600;line-height:1.25;}
+  .pcard .meta{font-size:11px;color:var(--muted);margin-top:2px;}
+  .gen-badge{
+    display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;
+    background:#f3e3c8;color:#9a6a1e;margin-top:4px;
+  }
+  .empty{text-align:center;color:var(--muted);padding:40px 10px;font-size:15px;}
+  /* ---------- Detail sheet ---------- */
+  .mask{position:fixed;inset:0;background:rgba(40,25,15,.5);z-index:50;display:none;}
+  .mask.show{display:block;}
+  .sheet{
+    position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--paper);
+    border-radius:20px 20px 0 0;max-height:88vh;overflow-y:auto;
+    transform:translateY(100%);transition:transform .25s ease;padding:0 0 calc(env(safe-area-inset-bottom) + 20px);
+    box-shadow:0 -6px 20px rgba(80,40,20,.25);
+  }
+  .sheet.show{transform:translateY(0);}
+  .sheet .grip{width:40px;height:4px;border-radius:3px;background:#d9c6a4;margin:10px auto 4px;}
+  .sheet .top{display:flex;gap:14px;align-items:center;padding:6px 18px 12px;border-bottom:1px solid var(--line);}
+  .sheet .top .ava{width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid var(--gold);background:#f0e4cf;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:34px;color:var(--red);font-weight:700;}
+  .sheet .top .nm{font-size:23px;font-weight:700;}
+  .sheet .top .al{font-size:12px;color:var(--muted);}
+  .sheet .top .gd{margin-top:4px;}
+  .sheet .body{padding:14px 18px;}
+  .row{margin-bottom:12px;}
+  .row .k{font-size:13px;color:var(--gold);font-weight:700;letter-spacing:1px;margin-bottom:4px;}
+  .row .v{font-size:15px;}
+  .rels{display:flex;flex-wrap:wrap;gap:7px;}
+  .rel{
+    padding:5px 11px;border-radius:16px;background:#fff;border:1px solid var(--line);
+    font-size:14px;color:var(--ink);cursor:pointer;
+  }
+  .rel:active{background:#f3e3c8;}
+  .rel.male{color:#9e2b25;}
+  .bio{font-size:16px;line-height:1.9;color:#4a3c2e;background:#fbf3e6;border-radius:12px;padding:12px 14px;border:1px solid var(--line);}
+  .bio p{margin:0 0 11px;}
+  .bio p:last-child{margin-bottom:0;}
+  .sheet .top .ava{cursor:pointer;}
+  /* ---------- Gallery ---------- */
+  .gal{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .gitem{border-radius:14px;overflow:hidden;box-shadow:var(--shadow);background:#fff;border:1px solid var(--line);cursor:pointer;}
+  .gitem img{width:100%;height:150px;object-fit:cover;display:block;}
+  .gitem .cap{padding:8px 10px;font-size:13px;color:var(--ink);}
+  /* ---------- Story ---------- */
+  .story h2{font-size:19px;color:var(--red);border-left:4px solid var(--gold);padding-left:10px;margin:18px 0 8px;}
+  .story p{font-size:15.5px;color:#4a3c2e;margin:0 0 12px;text-align:justify;}
+  .story .lead{background:#fbf3e6;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:15px;}
+  .story .sgal{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:8px 0 14px;}
+  .story .sgal.single{grid-template-columns:1fr;}
+  .story .sgal .gitem{margin:0;background:#fbf3e6;border:1px solid var(--line);border-radius:12px;overflow:hidden;cursor:pointer;}
+  .story .sgal .gitem img{width:100%;height:130px;object-fit:cover;display:block;background:#f0e4cf;}
+  .story .sgal.single .gitem img{height:auto;max-height:520px;object-fit:contain;}
+  .story .bgr{background:#f5ead4;border-left:3px solid var(--gold);padding:11px 14px;border-radius:0 12px 12px 0;font-size:15.5px;line-height:1.85;color:#4a3c2e;margin:6px 0 12px;}
+  .story .galcap{font-size:12.5px;color:var(--muted);text-align:center;padding:6px 4px 8px;line-height:1.5;}
+  .story .sig{text-align:right;color:var(--red);font-weight:700;margin-top:2px;letter-spacing:1px;}
+  .story h2{margin:18px 0 8px;}
+  /* ---------- Add form ---------- */
+  .form .f{margin-bottom:13px;}
+  .form label{display:block;font-size:13px;color:var(--gold);font-weight:700;margin-bottom:4px;}
+  .form input,.form select,.form textarea{
+    width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;
+    font-size:16px;background:#fff;color:var(--ink);outline:none;font-family:inherit;
+  }
+  .form textarea{resize:vertical;min-height:64px;}
+  .btn{
+    display:block;width:100%;padding:13px;border:none;border-radius:12px;font-size:17px;font-weight:700;
+    background:var(--red);color:#fff;cursor:pointer;letter-spacing:2px;
+  }
+  .btn:active{opacity:.85;}
+  .btn.ghost{background:#fff;color:var(--red);border:1px solid var(--red);}
+  .upbtn{display:inline-block;font-size:13px;color:var(--red);background:#fff;border:1px solid var(--red);border-radius:18px;padding:5px 14px;cursor:pointer;margin-right:8px;}
+  .upbtn.del{color:var(--muted);border-color:var(--line);}
+  .upbtn:active{opacity:.85;}
+  .addtip{background:#fbf3e6;border:1px dashed var(--gold);border-radius:12px;padding:11px 13px;font-size:13.5px;color:var(--muted);margin-bottom:14px;}
+  .addlist{margin-top:18px;}
+  .addlist .item{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:15px;}
+  .addlist .del{color:var(--red);font-size:13px;border:1px solid var(--red);border-radius:8px;padding:4px 9px;background:#fff;}
+  /* ---------- Lightbox ---------- */
+  .lb{position:fixed;inset:0;background:rgba(20,10,5,.92);z-index:80;display:none;align-items:center;justify-content:center;flex-direction:column;padding:20px;}
+  .lb.show{display:flex;}
+  .lb img{max-width:100%;max-height:80vh;border-radius:8px;}
+  .lb .cap{color:#f3e3c8;margin-top:12px;font-size:14px;text-align:center;}
+  .lb .close{position:absolute;top:16px;right:18px;color:#fff;font-size:30px;}
+  .foot{text-align:center;color:var(--muted);font-size:12px;padding:18px 10px 6px;}
+  .floatbtn{
+    position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom) + 18px);z-index:40;
+    width:56px;height:56px;border-radius:50%;background:var(--red);color:#fff;border:none;
+    font-size:30px;box-shadow:0 4px 14px rgba(120,30,20,.4);display:none;
+  }
+  .floatbtn.show{display:block;}
+  .toast{position:fixed;left:50%;top:30%;transform:translateX(-50%);background:rgba(40,25,15,.9);color:#fff;padding:10px 18px;border-radius:22px;font-size:14px;z-index:90;opacity:0;transition:opacity .2s;pointer-events:none;}
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="seal">王</div>
+  <h1 class="serif">王氏家谱</h1>
+  <div class="sub">瓜州 · 河西走廊 · 五代传承</div>
+  <div class="origin" id="origin"></div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-tab="tree">家谱</div>
+  <div class="tab" data-tab="gallery">相册</div>
+  <div class="tab" data-tab="story">家族故事</div>
+  <div class="tab" data-tab="add">新增</div>
+</div>
+
+<!-- 家谱 -->
+<div class="view active" id="view-tree">
+  <input class="search" id="search" placeholder="🔍 搜索姓名 / 字号">
+  <div class="chips" id="chips"></div>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" style="display:none">没有找到对应成员</div>
+</div>
+
+<!-- 相册 -->
+<div class="view" id="view-gallery">
+  <div class="gal" id="gal"></div>
+</div>
+
+<!-- 家族故事 -->
+<div class="view story" id="view-story"></div>
+
+<!-- 新增 -->
+<div class="view" id="view-add">
+  <div class="addtip">本页可随时补录新成员（仅保存在本机浏览器）。如需正式入谱，可在此登记后由族中续修人汇总。照片可选，不选则用姓氏头像。</div>
+  <form class="form" id="addForm">
+    <div class="f"><label>姓名 *</label><input id="f-name" required placeholder="如：王小明"></div>
+    <div class="f"><label>世代</label>
+      <select id="f-gen">
+        <option value="1">第一代</option><option value="2">第二代</option>
+        <option value="3">第三代</option><option value="4">第四代</option><option value="5">第五代</option>
+        <option value="6">第六代（新增）</option>
+      </select>
+    </div>
+    <div class="f"><label>性别</label>
+      <select id="f-gender"><option value="男">男</option><option value="女">女</option></select>
+    </div>
+    <div class="f"><label>出生年份</label><input id="f-birth" placeholder="如：2010"></div>
+    <div class="f"><label>逝世年份（在世留空）</label><input id="f-death" placeholder="如：2020，在世不填"></div>
+    <div class="f"><label>父亲姓名</label><input id="f-father" placeholder="与谱中姓名一致可自动关联"></div>
+    <div class="f"><label>母亲姓名</label><input id="f-mother" placeholder="与谱中姓名一致可自动关联"></div>
+    <div class="f"><label>配偶</label><input id="f-spouse" placeholder="多个用、分隔，如：张三、李四"></div>
+    <div class="f"><label>简介</label><textarea id="f-bio" placeholder="一句话生平，如：生于某地，从事某职业……"></textarea></div>
+    <div class="f"><label>照片（可选）</label><input id="f-photo" type="file" accept="image/*"></div>
+    <button class="btn" type="submit">加入家谱</button>
+  </form>
+  <div class="addlist" id="addList"></div>
+  <div style="display:flex;gap:10px;margin-top:14px;">
+    <button class="btn ghost" id="exportBtn" style="flex:1">导出数据</button>
+    <button class="btn ghost" id="clearBtn" style="flex:1">清空新增</button>
+  </div>
+  <div style="margin-top:10px;">
+    <button class="btn ghost" id="exportPhotosBtn" style="width:100%">导出我收集的照片（发给管理员入谱）</button>
+  </div>
+</div>
+
+<button class="floatbtn" id="floatBtn">＋</button>
+
+<div class="mask" id="mask"></div>
+<div class="sheet" id="sheet">
+  <div class="grip"></div>
+  <div class="top">
+    <div class="ava" id="s-ava"></div>
+    <div>
+      <div class="nm serif" id="s-name"></div>
+      <div class="al" id="s-alias"></div>
+      <div class="gd" id="s-gen"></div>
+      <div style="margin-top:8px;">
+        <button class="upbtn" id="s-upbtn">上传照片</button>
+        <button class="upbtn del" id="s-delbtn" style="display:none">移除</button>
+      </div>
+    </div>
+  </div>
+  <div class="body" id="s-body"></div>
+</div>
+
+<div class="lb" id="lb"><span class="close" id="lb-close">×</span><img id="lb-img"><div class="cap" id="lb-cap"></div></div>
+<div class="toast" id="toast"></div>
+<input id="photoInput" type="file" accept="image/*" style="display:none">
+
+<script src="data.js"></script>
+<script>
+(function(){
+  var STORE="wangjiapu_additions_v1";
+  var BASE = (window.FAMILY && window.FAMILY.members) || [];
+  var GALLERY = (window.FAMILY && window.FAMILY.gallery) || [];
+  var META = (window.FAMILY && window.FAMILY.meta) || {};
+  var ASSET_BASE = "assets/";
+  function loadAdd(){ try{return JSON.parse(localStorage.getItem(STORE)||"[]");}catch(e){return [];} }
+  function saveAdd(a){ localStorage.setItem(STORE, JSON.stringify(a)); }
+  // self-uploaded photos (per device), keyed by member name
+  var PHOTO_KEY="wangjiapu_photos_v1";
+  var PHOTOS={}; try{ PHOTOS=JSON.parse(localStorage.getItem(PHOTO_KEY)||"{}"); }catch(e){ PHOTOS={}; }
+  function savePhotos(o){ PHOTOS=o; try{ localStorage.setItem(PHOTO_KEY, JSON.stringify(o)); }catch(e){ toast("存储空间不足，照片可能未能全部保存"); } }
+  // ---- 共享后端照片（实时，全族可见）----
+  var API_BASE="";                 // 后端同源时留空；若前后端分离部署，改成后端地址，如 "https://jiapu-api.example.com"
+  var SERVER_PHOTOS={};            // name -> url
+  var _photoSnap="";
+  function fetchServerPhotos(){
+    fetch(API_BASE+"/api/photos").then(function(r){ return r.ok? r.json():{}; }).then(function(o){
+      o=o||{};
+      var snap=JSON.stringify(o);
+      SERVER_PHOTOS=o;
+      if(snap!==_photoSnap){ _photoSnap=snap; renderGrid(); }   // 仅变化时重绘，避免滚动跳动
+    }).catch(function(){ /* 无共享后端（纯静态部署）则忽略，走本机存储 */ });
+  }
+  function uploadServerPhoto(name, dataUrl){
+    return fetch(API_BASE+"/api/photos", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name:name, dataUrl:dataUrl}) })
+      .then(function(r){ if(!r.ok) throw new Error("up"); return r.json(); })
+      .then(function(o){ if(o && o.url){ SERVER_PHOTOS[name]=o.url; renderGrid(); } return o; })
+      .catch(function(){ return null; });
+  }
+  function deleteServerPhoto(name){
+    return fetch(API_BASE+"/api/photos/"+encodeURIComponent(name), { method:"DELETE" })
+      .then(function(){ delete SERVER_PHOTOS[name]; renderGrid(); }).catch(function(){});
+  }
+  // combined list (base + additions); additions may carry dataURL photo
+  function all(){ var a=loadAdd(); return BASE.concat(a); }
+  function byName(n){ if(!n) return null; var L=all(); for(var i=0;i<L.length;i++){ if(L[i].name===n) return L[i]; } return null; }
+  function childrenOf(m){ var L=all(),r=[]; for(var i=0;i<L.length;i++){ if(L[i].father===m.name||L[i].mother===m.name) r.push(L[i]); } return r; }
+  function photoUrl(m){
+    if(!m) return "";
+    if(SERVER_PHOTOS[m.name]) return SERVER_PHOTOS[m.name];            // 共享（实时）
+    if(PHOTOS[m.name]) return PHOTOS[m.name];                          // 本机上传
+    if(m.photo && m.photo.indexOf("data:")===0) return m.photo;        // 新增成员 dataURL
+    if(m.photo) return ASSET_BASE + m.photo;
+    return "";
+  }
+  function avatarChar(m){ if(!m||!m.name) return "?"; return m.name.charAt(0); }
+
+  // ---- header meta ----
+  document.getElementById("origin").textContent = (META.origin||"") + "　·　" + (META.total||BASE.length) + "人入谱";
+
+  // ---- tabs ----
+  var tabs=document.querySelectorAll(".tab");
+  tabs.forEach(function(t){
+    t.onclick=function(){
+      tabs.forEach(function(x){x.classList.remove("active");});
+      t.classList.add("active");
+      var id="view-"+t.getAttribute("data-tab");
+      document.querySelectorAll(".view").forEach(function(v){v.classList.remove("active");});
+      document.getElementById(id).classList.add("active");
+      document.getElementById("floatBtn").classList.toggle("show", t.getAttribute("data-tab")==="add");
+    };
+  });
+  document.getElementById("floatBtn").onclick=function(){ switchTab("add"); };
+  function switchTab(name){ tabs.forEach(function(x){ if(x.getAttribute("data-tab")===name) x.click(); }); }
+
+  // ---- generation chips ----
+  var curGen=0, curQ="";
+  var chipData=[{g:0,label:"全部"}];
+  for(var g=1; g<=6; g++){
+    var c=BASE.filter(function(m){return m.gen===g && !m.spouseOnly;}).length;
+    // count base members of this gen (include spouses for display count? use blood only)
+  }
+  // build chips from actual available generations in base
+  var gensPresent={};
+  BASE.forEach(function(m){ if(m.father||m.mother|| m.birth) gensPresent[m.gen]=(gensPresent[m.gen]||0)+1; });
+  // simpler: count all members per gen
+  var cnt={};
+  BASE.forEach(function(m){ cnt[m.gen]=(cnt[m.gen]||0)+1; });
+  [1,2,3,4,5,6].forEach(function(g){ if(cnt[g]) chipData.push({g:g,label:"第"+["零","一","二","三","四","五","六"][g]+"代", n:cnt[g]}); });
+
+  var chipsBox=document.getElementById("chips");
+  chipData.forEach(function(c){
+    var d=document.createElement("div");
+    d.className="chip"+(c.g===0?" active":"");
+    d.innerHTML=c.label+(c.n?'<span class="n">'+c.n+'</span>':'');
+    d.onclick=function(){
+      document.querySelectorAll(".chip").forEach(function(x){x.classList.remove("active");});
+      d.classList.add("active"); curGen=c.g; renderGrid();
+    };
+    chipsBox.appendChild(d);
+  });
+
+  // ---- grid ----
+  var grid=document.getElementById("grid");
+  function renderGrid(){
+    var L=all();
+    var q=curQ.trim();
+    var list=L.filter(function(m){
+      if(curGen && m.gen!==curGen) return false;
+      if(q){
+        var hay=(m.name+" "+(m.alias||"")+" "+(m.bio||"")).toLowerCase();
+        if(hay.indexOf(q.toLowerCase())<0) return false;
+      }
+      return true;
+    });
+    grid.innerHTML="";
+    document.getElementById("empty").style.display = list.length? "none":"block";
+    list.forEach(function(m){ grid.appendChild(personCard(m)); });
+  }
+  function personCard(m){
+    var el=document.createElement("div");
+    el.className="pcard";
+    var pu=photoUrl(m);
+    var ava = pu? '<img class="ava" src="'+pu+'" alt="">' : '<div class="ava">'+avatarChar(m)+'</div>';
+    var life = m.birth? (m.birth+(m.death?("—"+m.death):"—")) : "";
+    el.innerHTML=ava+'<div class="nm">'+m.name+'</div>'+
+      '<div class="meta">'+life+'</div>'+
+      '<span class="gen-badge">第'+["零","一","二","三","四","五","六"][m.gen]+'代</span>';
+    el.onclick=function(){ openSheet(m); };
+    return el;
+  }
+
+  function handlePhoto(e, m){
+    var file=(e.target.files && e.target.files[0])||null; e.target.value="";
+    if(!file) return;
+    if(!/^image\//.test(file.type)){ toast("请选择图片文件"); return; }
+    var rd=new FileReader();
+    rd.onload=function(){
+      var img=new Image();
+      img.onload=function(){
+        var max=600, w=img.width, h=img.height;
+        if(w>h && w>max){ h=Math.round(h*max/w); w=max; }
+        else if(h>max){ w=Math.round(w*max/h); h=max; }
+        var cv=document.createElement("canvas"); cv.width=w; cv.height=h;
+        cv.getContext("2d").drawImage(img,0,0,w,h);
+        var data=cv.toDataURL("image/jpeg",0.82);
+        PHOTOS[m.name]=data; savePhotos(PHOTOS);                       // 本机乐观更新
+        var ava=document.getElementById("s-ava");
+        ava.innerHTML='<img src="'+data+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
+        ava.onclick=function(){ showLb(data, m.name); };
+        var upbtn=document.getElementById("s-upbtn"), delbtn=document.getElementById("s-delbtn");
+        upbtn.textContent="更换照片"; delbtn.style.display="";
+        renderGrid();
+        uploadServerPhoto(m.name, data).then(function(o){
+          if(o && o.url) toast("已上传「"+m.name+"」的照片（全族共享）");
+          else toast("已保存「"+m.name+"」的照片（本机）");
+        });
+      };
+      img.onerror=function(){ toast("图片读取失败"); };
+      img.src=rd.result;
+    };
+    rd.onerror=function(){ toast("文件读取失败"); };
+    rd.readAsDataURL(file);
+  }
+
+  // ---- detail sheet ----
+  var mask=document.getElementById("mask"), sheet=document.getElementById("sheet");
+  function openSheet(m){
+    var pu=photoUrl(m);
+    var ava=document.getElementById("s-ava");
+    ava.innerHTML = pu? '<img src="'+pu+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover">' : avatarChar(m);
+    ava.onclick = pu? function(){ showLb(pu, m.name); } : null;
+    var upbtn=document.getElementById("s-upbtn"), delbtn=document.getElementById("s-delbtn");
+    var hasUp=!!(PHOTOS[m.name]||SERVER_PHOTOS[m.name]);
+    upbtn.textContent = hasUp? "更换照片":"上传照片";
+    delbtn.style.display = hasUp? "":"none";
+    upbtn.onclick=function(){ document.getElementById("photoInput").click(); };
+    document.getElementById("photoInput").onchange=function(e){ handlePhoto(e, m); };
+    delbtn.onclick=function(){
+      delete PHOTOS[m.name]; savePhotos(PHOTOS);
+      deleteServerPhoto(m.name);
+      var p2=photoUrl(m);
+      ava.innerHTML = p2? '<img src="'+p2+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover">' : avatarChar(m);
+      ava.onclick = p2? function(){ showLb(p2, m.name); } : null;
+      upbtn.textContent="上传照片"; delbtn.style.display="none";
+      renderGrid(); toast("已移除照片");
+    };
+    document.getElementById("s-name").textContent=m.name;
+    document.getElementById("s-alias").textContent=m.alias?("又名："+m.alias):"";
+    document.getElementById("s-gen").innerHTML='<span class="gen-badge">第'+["零","一","二","三","四","五","六"][m.gen]+'代 · '+m.gender+'</span>';
+    var body=document.getElementById("s-body");
+    var h="";
+    var life=(m.birth?m.birth:"不详")+(m.death?(" — "+m.death):" — 在世");
+    h+='<div class="row"><div class="k">生 卒</div><div class="v">'+life+'</div></div>';
+    // parents
+    var parents=[]; if(m.father) parents.push(m.father); if(m.mother) parents.push(m.mother);
+    if(parents.length){
+      h+='<div class="row"><div class="k">父 母</div><div class="rels">';
+      parents.forEach(function(p){ h+=relChip(p); });
+      h+='</div></div>';
+    }
+    if(m.spouse && m.spouse.length){
+      h+='<div class="row"><div class="k">配 偶</div><div class="rels">';
+      m.spouse.forEach(function(s){ h+=relChip(s); });
+      h+='</div></div>';
+    }
+    var kids=childrenOf(m);
+    if(kids.length){
+      h+='<div class="row"><div class="k">子 女（'+kids.length+'）</div><div class="rels">';
+      kids.forEach(function(k){ h+=relChip(k.name); });
+      h+='</div></div>';
+    }
+    var bioHtml = (m.bio||"") ? m.bio.split("\n").map(function(p){return "<p>"+p.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</p>";}).join("") : "<p>（待补）</p>";
+    h+='<div class="row"><div class="k">简 介</div><div class="bio">'+bioHtml+'</div></div>';
+    body.innerHTML=h;
+    mask.classList.add("show"); sheet.classList.add("show");
+    sheet.scrollTop=0;
+  }
+  function relChip(name){
+    var p=byName(name);
+    var cls="rel"+(p&&p.gender==="男"?" male":"");
+    return '<span class="'+cls+'" data-n="'+name+'">'+name+'</span>';
+  }
+  body_click_delegate();
+  function body_click_delegate(){
+    document.getElementById("s-body").addEventListener("click",function(e){
+      var t=e.target.closest(".rel"); if(!t) return;
+      var p=byName(t.getAttribute("data-n"));
+      if(p) openSheet(p); else toast("谱中暂无「"+t.getAttribute("data-n")+"」详情");
+    });
+  }
+  function closeSheet(){ mask.classList.remove("show"); sheet.classList.remove("show"); }
+  mask.onclick=closeSheet;
+  sheet.querySelector(".grip").onclick=closeSheet;
+
+  // ---- gallery ----
+  var gal=document.getElementById("gal");
+  GALLERY.forEach(function(g){
+    var el=document.createElement("div"); el.className="gitem";
+    el.innerHTML='<img src="'+ASSET_BASE+g.src+'" alt=""><div class="cap">'+g.caption+'</div>';
+    el.onclick=function(){ showLb(ASSET_BASE+g.src, g.caption); };
+    gal.appendChild(el);
+  });
+  // gallery also includes any base photos not used? skip.
+
+  // ---- lightbox ----
+  var lb=document.getElementById("lb");
+  function showLb(src,cap){ document.getElementById("lb-img").src=src; document.getElementById("lb-cap").textContent=cap||""; lb.classList.add("show"); }
+  document.getElementById("lb-close").onclick=function(){ lb.classList.remove("show"); };
+  lb.onclick=function(e){ if(e.target===lb) lb.classList.remove("show"); };
+
+  // ---- story ----
+  var storyBox=document.getElementById("view-story");
+  var STORY_HTML = `<h2>前 言</h2>
+<p>斗转星移，沧海桑田。在人类漫长而浩瀚的历史长河中，各民族生于斯、长于斯，于不同的土地上扎根、繁衍、生生不息。一代代勤劳的先民，历经历史的沉浮与社会的变迁，用双手与汗水，将流星般短暂的一生凝成最耀眼的光芒，为人间谱写出壮丽而不朽的乐章。</p>
+<p>我的爷爷王庭贵，便生于这片苍茫的土地——甘肃省酒泉市瓜州县西湖乡北沟村一组（原安西县环城乡），地处甘、青、新三省交界的河西走廊西端，疏勒河畔。再向上追溯，因家族长辈相继离世，往事湮没于岁月之中，既无口耳相传之片语，亦无只字纸墨可循。纵使祖坟之内安葬着爷爷以上两代先人，亦连名讳都无从知晓。于是，这部王氏家谱，只能自爷爷起笔，为后世留下一段可考、可念的根脉。</p>
+<p>爷爷生于清代末年的1900年，凭借高大结实的身躯，在贫瘠的安西故土上辛勤耕耘，日复一日，年复一年。据说爷爷是独苗；而据幼时家族称谓相传，王氏一族在环城乡以四工路为界，分为南庄与北庄。爷爷乃南庄之长，叔伯弟兄共六人，皆出同门：</p>
+<p>大爷，王庭贵，即我爷爷，为独苗；</p>
+<p>二爷，名讳未详，青年时远赴新疆乌鲁木齐，客居他乡；</p>
+<p>三爷王庭选，育有一男三女；</p>
+<p>四爷，名讳未详，迁居南岔乡六工村，育有二子；</p>
+<p>五爷，王庭栋，解放前有土地出租，膝下无子，自六爷家抱养一子，名王全德；</p>
+<p>六爷，王庭英，居于环城乡中沟村四组，育有五男四女共九子，其第四子被五爷抱养。</p>
+<p>然命运多舛，奶奶于1939年早逝，诞下小叔叔后不久便撒手人寰，爷爷自此独自挑起生活的千钧重担。纵使孤身撑持，他仍以钢铁般的意志，将膝下四个孩子一一抚养成人。爷爷于1974年春天辞世，享年七十四岁。</p>
+<p>斗转星移，枝叶繁茂。至今，王氏家族已繁衍五代，人丁兴旺（具体人数以本谱目录最新统计为准）。</p>
+<p>谨以此谱，追念先辈创业之艰辛，铭记血脉绵延之厚重。愿后世子孙：知其所从来，亦知其所往；念祖德，承家风，生生不息。</p>
+<p class="sig">王建国　撰<br>二〇二六年八月</p>
+<div class="sgal"><div class="gitem" data-img="assets/cover-wind.jpg" data-cap="瓜州风电长廊，“风电之都”时代感。"><img src="assets/cover-wind.jpg" alt="瓜州风电长廊，“风电之都”时代感。" loading="lazy"><div class="galcap">瓜州风电长廊，“风电之都”时代感。</div></div><div class="gitem" data-img="assets/cover-tang-ruin.jpg" data-cap="唐代古城遗址，大漠孤烟，象征祖辈扎根的这片土地千年沧桑"><img src="assets/cover-tang-ruin.jpg" alt="唐代古城遗址，大漠孤烟，象征祖辈扎根的这片土地千年沧桑" loading="lazy"><div class="galcap">唐代古城遗址，大漠孤烟，象征祖辈扎根的这片土地千年沧桑</div></div></div>
+<h2>世系总图</h2>
+<div class="sgal single"><div class="gitem" data-img="assets/shixi-chart.jpg" data-cap="王氏家谱·世系图（第一至第五代）"><img src="assets/shixi-chart.jpg" alt="王氏家谱·世系图（第一至第五代）" loading="lazy"><div class="galcap">王氏家谱·世系图（第一至第五代）</div></div></div>
+<h2>第一代 · 清末民初・丝路古城</h2>
+<p class="bgr">爷爷王庭贵生于清代末年的 1900 年，彼时安西（今瓜州）仍为安西直隶州，民国二年（1913 年）改为安西县。他一生历经清末乱世、民国兵荒、新中国成立、大跃进、“文革”等多个时代。那时候的安西，是丝绸之路上的戈壁小城，地广人稀，百姓靠耕种放牧为生，生活艰苦但民风坚韧。锁阳城等古城遗址默默矗立在戈壁中，诉说着汉唐丝路的千年繁华。</p>
+<div class="sgal"><div class="gitem" data-img="assets/gen1-old-anxi.jpg" data-cap="1910年安西城老照片｜百年前的安西县城楼，爷爷王庭贵青年时代的真实风貌"><img src="assets/gen1-old-anxi.jpg" alt="1910年安西城老照片" loading="lazy"><div class="galcap">1910年安西城老照片｜百年前的安西县城楼，爷爷王庭贵青年时代的真实风貌</div></div><div class="gitem" data-img="assets/gen1-suoyang.jpg" data-cap="锁阳城遗址｜唐代丝路古城，戈壁荒漠中的千年遗迹"><img src="assets/gen1-suoyang.jpg" alt="锁阳城遗址" loading="lazy"><div class="galcap">锁阳城遗址｜唐代丝路古城，戈壁荒漠中的千年遗迹</div></div><div class="gitem" data-img="assets/gen1-huyang.jpg" data-cap="疏勒河胡杨林｜疏勒河畔的天然胡杨林，戈壁绿洲的生命象征"><img src="assets/gen1-huyang.jpg" alt="疏勒河胡杨林" loading="lazy"><div class="galcap">疏勒河胡杨林｜疏勒河畔的天然胡杨林，戈壁绿洲的生命象征</div></div></div>
+<h2>第二代 · 新中国・农垦拓荒</h2>
+<p class="bgr">第二代人生于 1930-40 年代，成长于新中国成立前后。1958 年安西建国营机械化农场，1965 年甘肃生产建设兵团农建十一师六团进驻小宛农场，大批兵团战士屯垦戍边、开荒造田。他们住地窝子、啃窝头，在戈壁滩上硬是开出了万亩良田。这一代人亲历了人民公社、大跃进、“文革”，也见证了改革开放初期农村的变化。</p>
+<div class="sgal"><div class="gitem" data-img="assets/gen2-diwazi.jpg" data-cap="戈壁地窝子｜兵团战士最早住的地窝子，戈壁拓荒的真实写照"><img src="assets/gen2-diwazi.jpg" alt="戈壁地窝子" loading="lazy"><div class="galcap">戈壁地窝子｜兵团战士最早住的地窝子，戈壁拓荒的真实写照</div></div><div class="gitem" data-img="assets/gen2-farm.jpg" data-cap="小宛农场高标准农田｜安西小宛农场的农垦建设现场，戈壁变良田"><img src="assets/gen2-farm.jpg" alt="小宛农场高标准农田" loading="lazy"><div class="galcap">小宛农场高标准农田｜安西小宛农场的农垦建设现场，戈壁变良田</div></div><div class="gitem" data-img="assets/gen2-canal.jpg" data-cap="农垦水渠｜引水灌溉的干渠，农垦年代最重要的生命线"><img src="assets/gen2-canal.jpg" alt="农垦水渠" loading="lazy"><div class="galcap">农垦水渠｜引水灌溉的干渠，农垦年代最重要的生命线</div></div></div>
+<h2>第三代 · 改革开放・棉花蜜瓜</h2>
+<p class="bgr">第三代人生于 1950-60 年代，青年时期赶上改革开放。80 年代安西棉花种植面积逐年扩大，到 90 年代棉花成为全县支柱产业，所产皮棉品质优良、远销十多个省市。2004 年安西被命名为 “中国蜜瓜之乡”“中国锁阳之乡”。这一代人从生产队到包产到户，从国营农场到个体经营，有人开商店、有人跑运输、有人搞棉花加工，是安西从计划经济走向市场经济的亲历者。</p>
+<div class="sgal"><div class="gitem" data-img="assets/gen3-cotton.jpg" data-cap="万亩棉田丰收｜改革开放后棉花成为安西支柱产业，朵朵新棉白如雪"><img src="assets/gen3-cotton.jpg" alt="万亩棉田丰收" loading="lazy"><div class="galcap">万亩棉田丰收｜改革开放后棉花成为安西支柱产业，朵朵新棉白如雪</div></div><div class="gitem" data-img="assets/gen3-melon.jpg" data-cap="瓜州蜜瓜丰收｜中国蜜瓜之乡，瓜州因瓜得名、因瓜扬名"><img src="assets/gen3-melon.jpg" alt="瓜州蜜瓜丰收" loading="lazy"><div class="galcap">瓜州蜜瓜丰收｜中国蜜瓜之乡，瓜州因瓜得名、因瓜扬名</div></div><div class="gitem" data-img="assets/gen3-city-aerial.jpg" data-cap="瓜州县城航拍｜从戈壁小镇到绿洲县城，第三代人见证了家乡变化"><img src="assets/gen3-city-aerial.jpg" alt="瓜州县城航拍" loading="lazy"><div class="galcap">瓜州县城航拍｜从戈壁小镇到绿洲县城，第三代人见证了家乡变化</div></div></div>
+<h2>第四代 · 现代化・城市变迁</h2>
+<p class="bgr">第四代人生于 1970-90 年代，是改革开放后成长起来的一代。2006 年 2 月，经国务院批准，安西县正式更名为瓜州县，恢复汉唐古名，也开启了城市快速发展的新阶段。渊泉广场、瓜州大道、玄奘大道、新区 “五大园” 等城市项目相继建成，县城面貌焕然一新。这一代人很多走出戈壁、外出求学打拼，在南方、在大城市扎根，同时也见证着家乡从 “安西” 到 “瓜州” 的历史跨越。</p>
+<div class="sgal"><div class="gitem" data-img="assets/gen4-city-panorama.jpg" data-cap="瓜州县城全景｜2006 年安西更名瓜州后，城市面貌焕然一新"><img src="assets/gen4-city-panorama.jpg" alt="瓜州县城全景" loading="lazy"><div class="galcap">瓜州县城全景｜2006 年安西更名瓜州后，城市面貌焕然一新</div></div><div class="gitem" data-img="assets/gen4-xuanzang-ave.jpg" data-cap="玄奘大道｜城市主干道建成，现代化路网拉开新城框架"><img src="assets/gen4-xuanzang-ave.jpg" alt="玄奘大道" loading="lazy"><div class="galcap">玄奘大道｜城市主干道建成，现代化路网拉开新城框架</div></div><div class="gitem" data-img="assets/gen4-new-district.jpg" data-cap="瓜州新区道路｜道路两旁绿树成荫，戈壁小城越来越宜居"><img src="assets/gen4-new-district.jpg" alt="瓜州新区道路" loading="lazy"><div class="galcap">瓜州新区道路｜道路两旁绿树成荫，戈壁小城越来越宜居</div></div></div>
+<h2>第五代 · 新时代・新能源之都</h2>
+<p class="bgr">第五代人生于 2000 年后，成长在全新的时代。瓜州依托 “世界风库” 的独特优势，大力发展新能源，如今全县电力总装机容量达 1992 万千瓦，风电装机 1210 万千瓦，稳居全国风电装机第一县，被誉为 “世界风电之都”。5000 多台风机矗立戈壁，新能源企业纳税占全县税收的一半以上。这一代人从小看着风机长大，未来将在绿色能源、数字经济的新时代里，书写家族新的篇章。</p>
+<div class="sgal"><div class="gitem" data-img="assets/gen5-wind.jpg" data-cap="戈壁风电长廊｜全国风电装机第一县，5000 台风机矗立大漠"><img src="assets/gen5-wind.jpg" alt="戈壁风电长廊" loading="lazy"><div class="galcap">戈壁风电长廊｜全国风电装机第一县，5000 台风机矗立大漠</div></div><div class="gitem" data-img="assets/gen5-csp.jpg" data-cap="双塔光热电站｜全球首座 “双塔一机” 光热储能电站，24 小时连续发电"><img src="assets/gen5-csp.jpg" alt="双塔光热电站" loading="lazy"><div class="galcap">双塔光热电站｜全球首座 “双塔一机” 光热储能电站，24 小时连续发电</div></div><div class="gitem" data-img="assets/gen5-storage.jpg" data-cap="风光储一体化基地｜风电 + 光伏 + 储能，戈壁崛起新能源集群"><img src="assets/gen5-storage.jpg" alt="风光储一体化基地" loading="lazy"><div class="galcap">风光储一体化基地｜风电 + 光伏 + 储能，戈壁崛起新能源集群</div></div></div>
+<h2>世祖坟墓园</h2>
+<p>公元1971年4月，在环城乡北沟村一组老家不远处的田地里，埋葬着家族的上两代祖先和我们的奶奶。当时乡政府号召迁坟造地，在第二代长子王正德的带领下，将上两代先祖以拾骨装箱的办法，迁往通往五七林场的南戈壁。1974年，第一代王庭贵去世后也埋葬于此。</p>
+<p>公元1981年清明，因通往五七林场的戈壁要修建水渠，通知迁坟。在第二代长子王正德的带领下，亲自选择吉地，又将祖坟迁至距离县城6公里的北戈壁。二次迁坟时，因第一次迁坟的祖先都是用纸箱盛骨，此次都定制了木匣；爷爷的棺木完好，整体进行了搬迁。二次迁坟后，这里先后新添了第二代长子王正德和妻子常守英的合葬墓。</p>
+<p>2002年4月，安西县要通火车、修建火车站，我们的祖坟恰在火车站前广场的东南方。为在戈壁大力建设风力发电，我县第一次由政府统一规划了公墓区，由第二代次子王孝德亲自选择吉地为新坟址，并带领家族人员搬迁了已故的列祖列宗。2009年1月15日、2009年11月6日、2012年3月24日，这里先后又增添了第二代次子王孝德、第三代长子王斌、王孝德之妻闫翠芳的坟墓。</p>
+<p>2016年清明前，在王建国的提议下，经大哥王海、三哥王平同意，对墓地进行修缮。墓北侧为上，修建皇天后土碑，碑上用大理石撰写对联“历览前贤国与家，成由勤俭败由奢”，作为家训，让后世儿孙牢记。（修建祖坟费用由王海、王平、王建国、王川川承担，由王建国监督执行，请公墓管理人进行修缮。）</p>
+<p>瓜州县公墓区自2011年起由政府投入资金开始基本建设，先后开挖戈壁沙石换土数公里，修建瓜州墓园、公墓管理办公室等基本设施。通过几年的建设，这里逐步增添了绿色。从公墓区向北、向西、向东望去，是一望无际的戈壁风车，它们不停地转动，为这个活着的世界提供着用之不尽的绿色能源。这一座座风车好像瓜州墓区的保护神，兢兢业业、勤勤恳恳地转动着，像一个个伟岸的戈壁巨人，忠实地守卫着曾经建设美好瓜州的历史故人。向南望去，逶迤蜿蜒的火车路连接着祖国的大江南北；再向南望去，就是戈壁绿洲瓜州城。一个不断变化着、不断美化的新瓜州，就是这些故去的瓜州人奋斗的标志！活着的人们永远缅怀他们，故去的列祖列宗永垂不朽！</p>
+<h2>后 记</h2>
+<p>以史为鉴，鉴往知今，不忘始祖，惠及后世，这是中华民族的优良传统。一个人、一个家庭，不论漂泊多远，编入宗谱、列入门墙、祭先祭祖、托福于列祖列宗的福荫之下，总是他最大的心愿。这种生生不息的寻根意识，会使这个家族产生强大的凝聚力。</p>
+<p>数百年以来，也许是我们列祖列宗将族谱失传，使我们对自己的宗谱不能得以完整地延续。随着家族人员的繁衍迁徙、悲欢聚散，我们的祖先在人类辉煌的发展历史进程中感人至深的创业历程、对周围民众的特殊贡献，都不能得到反映，这本身就是对我们这个家族不负责任的表现。我们的上两辈人，据我所知，一是文盲，二是生计所迫、条件所限，没有及时对家谱加以复新和补充，这种失误情有可原，是可以谅解的。</p>
+<p>今天，王氏家族在新中国建立以后，从文盲到文化人，从农民到城市居民，再到自由创业者，乃至公务员、干部、专业技术人员、国企职工等各个行业，都有家族成员的身影。这说明我们家族先辈虽然历尽沧桑、含辛茹苦，养育了后世子孙，而我们也没有忘掉先祖的精神。我们沿着先祖自强不息的精神奋发图强、努力打拼，今天的生活不但实现了安居乐业，还和祖国欣欣向荣的繁荣景象一样，实现了人丁兴旺、吉祥平安。</p>
+<p>为孝敬祖辈、报答祖恩，始终不忘祖宗，并祈求列祖为后辈赐予福禄平安，特编制此册，即《王氏简略家谱·家史》，供后人参考。按祖训，家谱中本只列男、不列女，但从上世纪八十年代以后，计划生育国策大力提倡，每个家庭只有一个孩子越来越普及，故这个迟来的家谱将1900年以来的家族中所有男女成员悉数并列。望家族中有心人能够永续家谱，使它流传百代，不忘始祖，鉴之以此为证。</p>
+<p>家谱撰写人：第三代男孩排行老四王建国。因家谱撰写期间，三代以上老人均已故去，家族曾经的辉煌已无法查证，仅靠自己了解的情况和撰写人的留心而记录撰写。家谱中缺失或失误的地方，敬请高人以事实为根据，以发扬家族和继承家族的光荣为目的，尽情补充和续写。</p>
+<p>撰写时间：第一稿2012年3月；第二稿2014年12月；第三稿2026年8月。最后成书时以成书时间为最后定稿时间。本谱第三稿（2026 年）由第四代王川川主持整理与续修。他在叔叔王建国原稿基础上，逐一核校人名、补充生卒信息、完善世系图、统一全书体例，投入大量心力，使这部家谱得以完整成册。在此谨表谢忱。</p>`;
+  storyBox.innerHTML = '<div class="lead">'+(META.author||"")+'　'+((META.year||""))+'</div>' + STORY_HTML;
+  storyBox.addEventListener('click', function(e){
+    var g = e.target.closest('.gitem');
+    if(!g) return;
+    showLb(g.getAttribute('data-img'), g.getAttribute('data-cap'));
+  });
+  // ---- add form ----
+  var addForm=document.getElementById("addForm");
+  addForm.onsubmit=function(e){
+    e.preventDefault();
+    var name=document.getElementById("f-name").value.trim();
+    if(!name){ toast("请填写姓名"); return; }
+    var spouse=document.getElementById("f-spouse").value.split(/[、,，]/).map(function(s){return s.trim();}).filter(Boolean);
+    var photoFile=document.getElementById("f-photo").files[0];
+    var finish=function(photo){
+      var rec={
+        name:name, gen:parseInt(document.getElementById("f-gen").value,10),
+        gender:document.getElementById("f-gender").value,
+        birth:document.getElementById("f-birth").value.trim(),
+        death:document.getElementById("f-death").value.trim(),
+        father:document.getElementById("f-father").value.trim(),
+        mother:document.getElementById("f-mother").value.trim(),
+        spouse:spouse, photo:photo||"", alias:"",
+        bio:document.getElementById("f-bio").value.trim()||"（待补）",
+        _local:true
+      };
+      var a=loadAdd(); a.push(rec); saveAdd(a);
+      addForm.reset(); renderAddList();
+      toast("已加入家谱（本机）");
+      switchTab("tree"); renderGrid();
+    };
+    if(photoFile){
+      var rd=new FileReader();
+      rd.onload=function(){ finish(rd.result); };
+      rd.readAsDataURL(photoFile);
+    } else { finish(""); }
+  };
+  function renderAddList(){
+    var a=loadAdd(); var box=document.getElementById("addList");
+    if(!a.length){ box.innerHTML='<div class="foot">暂无本机新增成员</div>'; return; }
+    box.innerHTML='<div class="addtip">本机已新增 '+a.length+' 人</div>';
+    a.forEach(function(r,i){
+      var el=document.createElement("div"); el.className="item";
+      el.innerHTML='<span>'+r.name+'（第'+["零","一","二","三","四","五","六"][r.gen]+'代）</span>';
+      var b=document.createElement("span"); b.className="del"; b.textContent="删除";
+      b.onclick=function(){ var x=loadAdd(); x.splice(i,1); saveAdd(x); renderAddList(); renderGrid(); toast("已删除"); };
+      el.appendChild(b); box.appendChild(el);
+    });
+  }
+  renderAddList();
+  document.getElementById("clearBtn").onclick=function(){
+    if(confirm("确定清空本机所有新增成员？此操作不可恢复。")){ saveAdd([]); renderAddList(); renderGrid(); toast("已清空"); }
+  };
+  document.getElementById("exportBtn").onclick=function(){
+    var data={meta:META, members:all()};
+    var blob=new Blob([JSON.stringify(data,null,1)],{type:"application/json"});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement("a"); a.href=url; a.download="王氏家谱数据.json"; a.click();
+    URL.revokeObjectURL(url);
+  };
+  document.getElementById("exportPhotosBtn").onclick=function(){
+    var keys=Object.keys(PHOTOS);
+    if(!keys.length){ toast("还没有人上传照片"); return; }
+    var blob=new Blob([JSON.stringify(PHOTOS,null,1)],{type:"application/json"});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement("a"); a.href=url; a.download="王氏家谱照片收集.json"; a.click();
+    URL.revokeObjectURL(url);
+    toast("已导出 "+keys.length+" 张照片");
+  };
+
+  // ---- search ----
+  document.getElementById("search").addEventListener("input",function(e){ curQ=e.target.value; renderGrid(); });
+
+  // ---- toast ----
+  var toastT;
+  function toast(msg){ var t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(function(){t.classList.remove("show");},1600); }
+
+  // init
+  renderGrid();
+  fetchServerPhotos();                                  // 拉取全族已上传的共享照片
+  setInterval(fetchServerPhotos, 10000);                 // 每 10 秒刷新，做到"任何人传了全族人立刻看到"
+})();
+</script>
+</body>
+</html>
