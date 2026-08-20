@@ -1,10 +1,10 @@
 // 把共享后端里的照片固化进静态站点（永久托管用）
-// 用法：node bake.js   —— 读取 server-data/photos.json，写入 assets/ 并更新 data.js 中对应成员的 photo
+// 用法：node bake.js   —— 读取 .data/photos.json，写入 assets/ 并更新 data.js 中对应成员的 photo
 const fs = require('fs');
 const path = require('path');
 const ROOT = __dirname;
-const UPLOADS = path.join(ROOT, 'server-data', 'uploads');
-const META = path.join(ROOT, 'server-data', 'photos.json');
+const UPLOADS = path.join(ROOT, '.data', 'uploads');
+const META = path.join(ROOT, '.data', 'photos.json');
 const ASSETS = path.join(ROOT, 'assets');
 const DATA = path.join(ROOT, 'data.js');
 
