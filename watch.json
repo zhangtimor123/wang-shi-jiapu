@@ -1,0 +1,9 @@
+{
+  "install": {
+    "include_files": ["package.json"]
+  },
+  "restart": {
+    "exclude_files": [".data/**"]
+  },
+  "throttle": 0
+}
