@@ -2,6 +2,10 @@
 
 基于照片与文字修订稿制作的移动端家谱网页，支持「家族成员实时共享上传照片」。
 
+> **🚀 一键部署（最快路径）**：本仓库已推到 GitHub → https://github.com/zhangtimor123/wang-shi-jiapu
+> 在浏览器打开 👉 **https://render.com/deploy?repo=https://github.com/zhangtimor123/wang-shi-jiapu**
+> 用 GitHub 登录 Render → 选 Free → 等 1–2 分钟 → 得到 `https://wang-shi-jiapu.onrender.com`，全家直接用这个地址就能实时传照片、互看头像。
+
 ## 目录
 - `index.html` 网页入口
 - `data.js` 家谱结构化数据（成员、关系、简介、头像）
