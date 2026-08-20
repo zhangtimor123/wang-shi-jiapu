@@ -2,51 +2,69 @@
 
 基于照片与文字修订稿制作的移动端家谱网页，支持「家族成员实时共享上传照片」。
 
-> **🚀 一键部署（最快路径，免绑卡）**：本仓库已推到 GitHub → https://github.com/zhangtimor123/wang-shi-jiapu
-> 打开 👉 **https://glitch.com/edit/#!/import/github/zhangtimor123/wang-shi-jiapu**
-> 用 GitHub 登录 Glitch → 自动拉起项目并安装 → 得到 `https://<你的项目名>.glitch.me`，全家直接用这个地址就能实时传照片、互看头像。
+> **🚀 部署到腾讯云开发 CloudBase（国内最快、免绑卡）**
+> 一个云函数同时承载静态站点和共享照片 API，部署只需上传一个 zip。
 
-## 目录
-- `index.html` 网页入口
-- `data.js` 家谱结构化数据（成员、关系、简介、头像）
-- `assets/` 人物照与家族合照
-- `server.js` 零依赖 Node 服务：同时托管站点 + 提供照片上传/获取/删除接口
-- `bake.js` 把本地 `.data/` 里的照片固化进静态站点（本地 server 用）
-- `pull.js` 把「线上 Glitch 实例」的照片固化进静态站点（永久化用）
-- `watch.json` 告诉 Glitch 上传照片时不要重启服务
+---
 
-## 两种运行模式
-1. **纯静态（无上传后端）**：任意静态托管（GitHub Pages / CloudStudio）直接放 `index.html` + `data.js` + `assets/`。
-   上传按钮会自动回退到「本机浏览器存储」——仅本人可见。
-2. **带共享后端（实时全家可见）**：用 `node server.js` 起服务。
-   任何人点详情页「上传照片」→ 照片直达后端、按姓名归位；前端每 10 秒拉取一次，谁传了别人 10 秒内可见。
+## 🚀 部署步骤
 
-## 部署到 Glitch（免费、免绑卡、全家实时共享）— 推荐
-1. 仓库已推到 GitHub（见下方「推送到 GitHub」）。
-2. 打开 👉 **https://glitch.com/edit/#!/import/github/zhangtimor123/wang-shi-jiapu**
-   （或在 glitch.com 右上角 New Project → Import from GitHub，粘贴 `https://github.com/zhangtimor123/wang-shi-jiapu`）
-3. 用 GitHub 登录并授权，Glitch 自动拉取代码、安装依赖（无需安装，零依赖）、启动服务。
-4. 左上角点项目名可改名（即 URL 前缀）。最终地址形如 `https://<项目名>.glitch.me`。
-5. 把这个地址发给全族人：前端 + 后端一体，上传立享共享，无需任何人绑卡。
+**前置**：你有腾讯云账号（用 CloudStudio 就有）+ 已实名认证。整个过程**不用绑信用卡**。
 
-> 免费层注意：项目一段时间不活跃会休眠，首个请求约 5–15 秒冷启动；属正常现象。上传的照片存在 Glitch 的 `.data` 持久目录，重启用不丢。
+### 第 1 步：开通云开发环境
+1. 打开 https://console.cloud.tencent.com/tcb
+2. 点 **"新建环境"** → 选 **"空模板"** → 环境名填 `jiapu-prod`（随你）→ 确定
+3. 等 ~1 分钟，**记下"环境 ID"**（显示在环境卡片上，一串短码）
 
-## 照片永久固化（可选，保险用）
-Glitch 的 `.data` 目录本身是持久的，一般不用固化。若想彻底把照片写进仓库（即使关停后端也不丢）：
+### 第 2 步：创建云函数并上传 zip
+1. 进入该环境 → 左侧 **"云函数"** → 点 **"+ 新建"**
+2. 填写：
+   - 函数名：`api`
+   - 地域：默认
+   - 运行环境：**Node.js 16**（或更新）
+   - 部署方式：**本地上传 ZIP**
+3. 点"上传" → 选 **`cloudbase-function.zip`**（约 21 MB，含 60 张资产照片 + 云函数代码）
+4. 点 **"完成"** / "确定"
+
+### 第 3 步：开启 HTTP 访问（关键）
+1. 进入函数 `api` 的详情页
+2. 左侧 **"函数管理" → "触发管理"** → **"新建触发"**
+3. 触发方式选 **"HTTP 触发"**，访问路径填 **`/`**（承载整站，必须是 `/`）
+4. 保存后，**记下显示的"公网访问地址"**，形如：
+   ```
+   https://jiapu-prod-3xxxxx.ap-shanghai.cloudbasefunction.cn/api
+   ```
+   （具体以你控制台显示为准）
+
+### 第 4 步：验证 & 全族共享
+- 浏览器打开上一步那个地址 → **应直接看到王氏家谱首页**
+- 点任意成员 → 选一张图上传 → 看到「已上传…（全族共享）」
+- 把这个地址发到家族群，全族即可：浏览家谱、查看照片、**谁传了照片别人 10 秒内就能看到**
+
+---
+
+## 数据存哪？安全吗？
+- **照片** → CloudBase **云存储**，永久保存，重启/迁移不丢
+- **谁传了谁的照片索引** → CloudBase **云数据库**（NoSQL）
+- 免费额度：云存储 5 GB、数据库 2 GB、云函数 10 万次调用/月——家用绰绰有余
+- 实名认证即可开通免费层，**无需绑卡**
+
+## 目录说明
 ```
-BASE_URL=https://你的项目名.glitch.me node pull.js
-git add -A && git commit -m "固化家人的上传照片" && git push
+wang-shi-jiapu/
+├── public/                  # 静态站点源（index.html / data.js / 60 张资产照片）
+├── functions/
+│   └── api/                 # CloudBase 云函数
+│       ├── index.js         #   - 同时处理 /api/photos + 静态分发
+│       ├── package.json     #   - 仅依赖 @cloudbase/node-sdk
+│       ├── node_modules/    #   - 已 npm install，���入库
+│       └── public/          #   - 部署时把 public/ 复制进来，不入库
+└── README.md
 ```
-（在 Glitch 编辑器 Terminal 里、或本地 clone 后跑均可。）
 
-## 推送到 GitHub
-```
-git remote add origin https://<用户名>:<PAT>@github.com/<用户名>/wang-shi-jiapu.git
-git push -u origin main
-```
-PAT 需有 `repo` 权限（classic token）。
-
-## 本地调试
-```
-node server.js            # 然后访问 http://localhost:3000
+## 本地预览（可选，无共享后端）
+```bash
+cd public && python3 -m http.server 8080
+# 浏览器打开 http://localhost:8080
+# 此时点"上传照片"只存在本机浏览器里（不上传）
 ```
