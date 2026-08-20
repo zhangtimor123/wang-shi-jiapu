@@ -1,7 +1,7 @@
-// 从「正在运行的 Render 实例」拉取全族已上传的照片，固化进 assets/ 与 data.js。
-// 用法: BASE_URL=https://wang-shi-jiapu.onrender.com node pull.js
-// 说明: Render 免费层磁盘是临时的，重启/重新部署会清空 uploads。
-//       家人传完后跑一次本脚本，照片就会永久写进站点（配合 GitHub Pages 即永久托管）。
+// 从「正在运行的 Glitch 实例」拉取全族已上传的照片，固化进 assets/ 与 data.js。
+// 用法: BASE_URL=https://你的项目名.glitch.me node pull.js
+// 说明: Glitch 的 .data 目录是持久的，一般无需固化；本脚本用于把照片永久写进站点，
+//       即使以后关停后端也不丢（配合 GitHub Pages / CloudStudio 即永久托管）。
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
@@ -56,5 +56,5 @@ function safeName(n) {
   });
   fs.writeFileSync(tp, 'const FAMILY = ' + JSON.stringify(F, null, 2) + ';\n');
   console.log('已更新 data.js 的', changed, '位成员头像');
-  console.log('完成。记得 git add -A && git commit && git push，Render 会自动重部署。');
+  console.log('完成。记得 git add -A && git commit && git push，更新会进入仓库。');
 })().catch((e) => { console.error('拉取失败:', e.message); process.exit(1); });
