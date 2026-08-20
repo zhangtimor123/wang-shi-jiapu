@@ -1,4 +1,7 @@
-.data/
 node_modules/
+functions/api/node_modules/
+functions/api/public/
+cloudbase-function.zip
+cloudbase-hosting.zip
 *.log
 .DS_Store
