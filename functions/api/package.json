@@ -1,0 +1,16 @@
+{
+  "name": "wang-shi-jiapu-api",
+  "version": "1.0.0",
+  "description": "王氏家谱 — CloudBase 云函数（静态托管 + 共享照片 API）",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@cloudbase/node-sdk": "^2.10.4"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
