@@ -1,13 +1,14 @@
 // 王氏家谱 — 共享照片后端（零依赖 Node 服务）
 // 同时托管静态站点 + 提供 /api/photos 上传/获取/删除
-// 运行：node server.js   （PORT 环境变量可覆盖，默认 3000）
+// 适配 Glitch：PORT 由平台注入；照片存进 .data（Glitch 持久目录，重启用不丢）
+// 运行：node server.js
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
 const ROOT = __dirname;                       // 项目根目录（静态文件所在）
-const DATA = path.join(ROOT, 'server-data'); // 运行时数据（不入库）
+const DATA = path.join(ROOT, '.data');       // Glitch 持久存储目录（重启用不丢）
 const UPLOADS = path.join(DATA, 'uploads');
 const META = path.join(DATA, 'photos.json');
 const PORT = process.env.PORT || 3000;
